@@ -12,6 +12,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.seaboat.net.reactor.handler.Handler;
+
 /**
  * 
  * @author seaboat
@@ -19,7 +21,7 @@ import org.slf4j.LoggerFactory;
  * @version 1.0
  * <pre><b>email: </b>849586227@qq.com</pre>
  * <pre><b>blog: </b>http://blog.csdn.net/wangyangzhizhou</pre>
- * <p>Reactor reacting all sockets.</p>
+ * <p>Reactor reacts all sockets.</p>
  */
 public final class Reactor extends Thread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Reactor.class);
@@ -27,11 +29,13 @@ public final class Reactor extends Thread {
 	private final Selector selector;
 	private final ConcurrentLinkedQueue<FrontendConnection> queue;
 	private long doCount;
+	private Handler handler;
 
-	public Reactor(String name) throws IOException {
+	public Reactor(String name, Handler handler) throws IOException {
 		this.name = name;
 		this.selector = Selector.open();
 		this.queue = new ConcurrentLinkedQueue<FrontendConnection>();
+		this.handler = handler;
 	}
 
 	final void postRegister(FrontendConnection frontendConnection) {
@@ -57,8 +61,10 @@ public final class Reactor extends Thread {
 						if (key.isReadable()) {
 							try {
 								connection.read();
-							} catch (IOException ioe) {
-								connection.close("IOException happens when read : " + ioe.getMessage());
+								handler.handle(connection);
+							} catch (IOException e) {
+								connection.close();
+								LOGGER.warn("IOException happens : ", e);
 								continue;
 							} catch (Throwable e) {
 								LOGGER.warn("Throwable happens : ", e);
@@ -66,10 +72,7 @@ public final class Reactor extends Thread {
 							}
 						}
 						if (key.isValid() && key.isWritable()) {
-							String str = "hello";
-							ByteBuffer sendBuffer = ByteBuffer.wrap(str
-									.getBytes("UTF-8"));
-							connection.write(sendBuffer);
+							connection.write();
 						}
 					} else {
 						key.cancel();
@@ -92,9 +95,9 @@ public final class Reactor extends Thread {
 		}
 		while ((c = queue.poll()) != null) {
 			try {
-				c.getChannel().register(selector, SelectionKey.OP_READ, c);
-			} catch (ClosedChannelException e) {
-				LOGGER.warn("exception happens when registering: ", e);
+				c.register(selector);
+			} catch (Throwable e) {
+				LOGGER.warn("ClosedChannelException happens : ", e);
 			}
 		}
 	}

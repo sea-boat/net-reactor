@@ -3,6 +3,9 @@ package com.seaboat.net.reactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.seaboat.net.reactor.handler.Handler;
+import com.seaboat.net.reactor.handler.MyHandler;
+
 /**
  * 
  * @author seaboat
@@ -22,7 +25,8 @@ public class Bootstrap {
 	public static void main(String[] args) {
 		try {
 			LOGGER.info("starting up ......");
-			ReactorPool reactorPool = new ReactorPool(Runtime.getRuntime().availableProcessors());
+			Handler handler = new MyHandler();
+			ReactorPool reactorPool = new ReactorPool(Runtime.getRuntime().availableProcessors(), handler);
 			new Acceptor(reactorPool, acceptorName, host, port).start();
 			LOGGER.info("started up successfully.");
 			while (true) {

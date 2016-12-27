@@ -2,6 +2,8 @@ package com.seaboat.net.reactor;
 
 import java.io.IOException;
 
+import com.seaboat.net.reactor.handler.Handler;
+
 /**
  * 
  * @author seaboat
@@ -16,10 +18,10 @@ public class ReactorPool {
 	private volatile int nextReactor;
 	private String name = "reactor";
 
-	public ReactorPool(int poolSize) throws IOException {
+	public ReactorPool(int poolSize, Handler handler) throws IOException {
 		reactors = new Reactor[poolSize];
 		for (int i = 0; i < poolSize; i++) {
-			Reactor reactor = new Reactor(name + "-" + i);
+			Reactor reactor = new Reactor(name + "-" + i,handler);
 			reactors[i] = reactor;
 			reactor.start();
 		}
