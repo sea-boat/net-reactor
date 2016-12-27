@@ -7,6 +7,7 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,13 +28,12 @@ public class FrontendConnection {
 	private SocketChannel channel;
 	private SelectionKey selectionKey;
 	private ByteBuffer readBuffer;
-	private ByteBuffer writeBuffer;
 	private static int BYFFERSIZE = 1024;
+	protected ConcurrentLinkedQueue<ByteBuffer> writeQueue = new ConcurrentLinkedQueue<ByteBuffer>();
 
 	public FrontendConnection(SocketChannel channel, long id) {
 		this.id = id;
 		this.channel = channel;
-		this.readBuffer = ByteBuffer.allocate(BYFFERSIZE);
 	}
 
 	public SocketChannel getChannel() {
@@ -45,6 +45,7 @@ public class FrontendConnection {
 	}
 
 	public void read() throws IOException {
+		readBuffer = ByteBuffer.allocate(BYFFERSIZE);
 		channel.read(readBuffer);
 	}
 
@@ -53,26 +54,32 @@ public class FrontendConnection {
 	}
 
 	public void write() throws IOException {
-		while (writeBuffer.hasRemaining()) {
-			int len = channel.write(writeBuffer);
-			if (len < 0) {
-				throw new EOFException();
-			}
-			if (len == 0) {
-				selectionKey.interestOps(selectionKey.interestOps()
-						| SelectionKey.OP_WRITE);
-				selectionKey.selector().wakeup();
-				break;
+		ByteBuffer buffer;
+		while ((buffer = writeQueue.poll()) != null) {
+			buffer.flip();
+			while (buffer.hasRemaining()) {
+				int len = channel.write(buffer);
+				if (len < 0) {
+					throw new EOFException();
+				}
+				if (len == 0) {
+					selectionKey.interestOps(selectionKey.interestOps()
+							| SelectionKey.OP_WRITE);
+					selectionKey.selector().wakeup();
+					break;
+				}
 			}
 		}
+		selectionKey.interestOps(selectionKey.interestOps()
+				& ~SelectionKey.OP_WRITE);
 	}
 
 	public ByteBuffer getReadBuffer() {
 		return readBuffer;
 	}
 
-	public ByteBuffer getWriteBuffer() {
-		return writeBuffer;
+	public ConcurrentLinkedQueue<ByteBuffer> getWriteQueue() {
+		return writeQueue;
 	}
 
 	public void register(Selector selector) throws Throwable {

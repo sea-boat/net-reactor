@@ -12,7 +12,7 @@ public class SocketClient {
 			new Thread(){
 				public void run(){
 					try {
-						Socket socket = new Socket("localhost", 6789);
+						Socket socket = new Socket("132.121.95.184", 6789);
 						for (;;) {
 							socket.getOutputStream().write(new byte[] { 1, 2, 3, 4, 5 });
 							Thread.currentThread().sleep(100);

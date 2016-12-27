@@ -1,0 +1,1 @@
+java -cp ../lib/*; com.seaboat.net.reactor.Bootstrap

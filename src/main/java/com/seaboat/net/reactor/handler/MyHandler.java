@@ -34,8 +34,9 @@ public class MyHandler implements Handler {
 		readSize = +readSize + buff.position();
 		LOGGER.info(connection.getId() + " connection has receive " + readSize);
 		if (readSize % 5 == 0) {
-			ByteBuffer sendBuffer = connection.getWriteBuffer();
+			ByteBuffer sendBuffer = ByteBuffer.allocate(10);;
 			sendBuffer.wrap("hello".getBytes());
+			connection.getWriteQueue().add(sendBuffer);
 			try {
 				connection.write();
 			} catch (IOException e) {
