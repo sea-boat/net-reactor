@@ -1,5 +1,7 @@
 package com.seaboat.net.reactor.handler;
 
+import java.io.IOException;
+
 import com.seaboat.net.reactor.FrontendConnection;
 
 /**
@@ -13,6 +15,6 @@ import com.seaboat.net.reactor.FrontendConnection;
  */
 public interface Handler {
 
-	public void handle(FrontendConnection connection);
+	public void handle(FrontendConnection connection) throws IOException;
 
 }

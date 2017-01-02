@@ -28,21 +28,20 @@ public class MyHandler implements Handler {
 	 * The logic to deal with the received data.
 	 *  
 	 * It means that reactor will trigger this function once the data is received.
+	 * @throws IOException 
 	 */
-	public void handle(FrontendConnection connection) {
+	public void handle(FrontendConnection connection) throws IOException {
 		Buffer buff = connection.getReadBuffer();
 		readSize = +readSize + buff.position();
 		LOGGER.info(connection.getId() + " connection has receive " + readSize);
 		if (readSize % 5 == 0) {
-			ByteBuffer sendBuffer = ByteBuffer.allocate(10);;
+			ByteBuffer sendBuffer = ByteBuffer.allocate(10);
+			;
 			sendBuffer.wrap("hello".getBytes());
 			connection.getWriteQueue().add(sendBuffer);
-			try {
-				connection.write();
-			} catch (IOException e) {
-				LOGGER.warn("IOException", e);
-			}
+			connection.write();
 		}
+
 	}
 
 }

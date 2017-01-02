@@ -30,12 +30,14 @@ public final class Reactor extends Thread {
 	private final ConcurrentLinkedQueue<FrontendConnection> queue;
 	private long doCount;
 	private Handler handler;
+	private BufferPool bufferPool;
 
 	public Reactor(String name, Handler handler) throws IOException {
 		this.name = name;
 		this.selector = Selector.open();
 		this.queue = new ConcurrentLinkedQueue<FrontendConnection>();
 		this.handler = handler;
+		this.bufferPool = new BufferPool(1024 * 2014 * 512, 10 * 1024);
 	}
 
 	final void postRegister(FrontendConnection frontendConnection) {
@@ -108,6 +110,10 @@ public final class Reactor extends Thread {
 
 	final long getReactCount() {
 		return doCount;
+	}
+
+	public BufferPool getBufferPool() {
+		return bufferPool;
 	}
 
 }

@@ -93,8 +93,9 @@ public final class Acceptor extends Thread {
 			channel.setOption(StandardSocketOptions.SO_RCVBUF, 1024);
 			channel.setOption(StandardSocketOptions.SO_SNDBUF, 1024);
 			channel.setOption(StandardSocketOptions.TCP_NODELAY, true);
-			reactorPool.getNextReactor().postRegister(
-					new FrontendConnection(channel, IdGenerator.getId()));
+			Reactor reactor = reactorPool.getNextReactor();
+			reactor.postRegister(new FrontendConnection(channel, IdGenerator
+					.getId(), reactor));
 		} catch (Throwable e) {
 			closeChannel(channel);
 			LOGGER.warn(getName(), e);

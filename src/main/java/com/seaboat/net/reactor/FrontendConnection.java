@@ -3,7 +3,6 @@ package com.seaboat.net.reactor;
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
@@ -30,10 +29,14 @@ public class FrontendConnection {
 	private ByteBuffer readBuffer;
 	private static int BYFFERSIZE = 1024;
 	protected ConcurrentLinkedQueue<ByteBuffer> writeQueue = new ConcurrentLinkedQueue<ByteBuffer>();
+	private Reactor reactor;
 
-	public FrontendConnection(SocketChannel channel, long id) {
+	public FrontendConnection(SocketChannel channel, long id, Reactor reactor) {
 		this.id = id;
 		this.channel = channel;
+		this.reactor = reactor;
+		//allocate byteBuffer until channel closed.
+		this.readBuffer = reactor.getBufferPool().allocate();
 	}
 
 	public SocketChannel getChannel() {
@@ -45,12 +48,15 @@ public class FrontendConnection {
 	}
 
 	public void read() throws IOException {
-		readBuffer = ByteBuffer.allocate(BYFFERSIZE);
 		channel.read(readBuffer);
 	}
 
 	public void close() throws IOException {
 		channel.close();
+		if (readBuffer != null) {
+			reactor.getBufferPool().recycle(readBuffer);
+			this.readBuffer = null;
+		}
 	}
 
 	public void write() throws IOException {
