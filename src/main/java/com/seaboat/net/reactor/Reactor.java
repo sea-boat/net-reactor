@@ -1,8 +1,6 @@
 package com.seaboat.net.reactor;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.util.Queue;
@@ -30,14 +28,15 @@ public final class Reactor extends Thread {
 	private final ConcurrentLinkedQueue<FrontendConnection> queue;
 	private long doCount;
 	private Handler handler;
-	private BufferPool bufferPool;
+	private ReactorPool reactorPool;
 
-	public Reactor(String name, Handler handler) throws IOException {
+	public Reactor(String name, Handler handler, ReactorPool reactorPool)
+			throws IOException {
 		this.name = name;
 		this.selector = Selector.open();
 		this.queue = new ConcurrentLinkedQueue<FrontendConnection>();
 		this.handler = handler;
-		this.bufferPool = new BufferPool(1024 * 2014 * 512, 10 * 1024);
+		this.reactorPool = reactorPool;
 	}
 
 	final void postRegister(FrontendConnection frontendConnection) {
@@ -112,8 +111,8 @@ public final class Reactor extends Thread {
 		return doCount;
 	}
 
-	public BufferPool getBufferPool() {
-		return bufferPool;
+	public ReactorPool getReactorPool() {
+		return reactorPool;
 	}
 
 }

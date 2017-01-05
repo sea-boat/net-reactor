@@ -17,14 +17,16 @@ public class ReactorPool {
 	private final Reactor[] reactors;
 	private volatile int nextReactor;
 	private String name = "reactor";
+	private BufferPool bufferPool;
 
 	public ReactorPool(int poolSize, Handler handler) throws IOException {
 		reactors = new Reactor[poolSize];
 		for (int i = 0; i < poolSize; i++) {
-			Reactor reactor = new Reactor(name + "-" + i,handler);
+			Reactor reactor = new Reactor(name + "-" + i, handler, this);
 			reactors[i] = reactor;
 			reactor.start();
 		}
+		this.bufferPool = new BufferPool(1024 * 1024 * 512, 10 * 1024);
 	}
 
 	public Reactor getNextReactor() {
@@ -32,5 +34,9 @@ public class ReactorPool {
 			nextReactor = 0;
 		}
 		return reactors[nextReactor];
+	}
+
+	public BufferPool getBufferPool() {
+		return bufferPool;
 	}
 }

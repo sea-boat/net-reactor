@@ -36,7 +36,7 @@ public class FrontendConnection {
 		this.channel = channel;
 		this.reactor = reactor;
 		//allocate byteBuffer until channel closed.
-		this.readBuffer = reactor.getBufferPool().allocate();
+		this.readBuffer = reactor.getReactorPool().getBufferPool().allocate();
 	}
 
 	public SocketChannel getChannel() {
@@ -54,7 +54,7 @@ public class FrontendConnection {
 	public void close() throws IOException {
 		channel.close();
 		if (readBuffer != null) {
-			reactor.getBufferPool().recycle(readBuffer);
+			reactor.getReactorPool().getBufferPool().recycle(readBuffer);
 			this.readBuffer = null;
 		}
 	}
