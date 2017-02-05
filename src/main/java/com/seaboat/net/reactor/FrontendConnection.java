@@ -33,6 +33,8 @@ public class FrontendConnection {
 	private long lastReadTime;
 	private long lastWriteTime;
 	private long createTime;
+	private long netInBytes;
+	private long netOutBytes;
 
 	public FrontendConnection(SocketChannel channel, long id, Reactor reactor) {
 		this.id = id;
@@ -54,7 +56,9 @@ public class FrontendConnection {
 
 	public void read() throws IOException {
 		this.lastReadTime = System.currentTimeMillis();
-		channel.read(readBuffer);
+		int size = channel.read(readBuffer);
+		if (size > 0)
+			netInBytes += size;
 	}
 
 	public void close() throws IOException {
@@ -81,6 +85,7 @@ public class FrontendConnection {
 					selectionKey.selector().wakeup();
 					break;
 				}
+				netOutBytes += len;
 			}
 		}
 		selectionKey.interestOps(selectionKey.interestOps()
@@ -105,6 +110,14 @@ public class FrontendConnection {
 
 	public long getLastWriteTime() {
 		return lastWriteTime;
+	}
+
+	public long getNetInBytes() {
+		return netInBytes;
+	}
+
+	public long getNetOutBytes() {
+		return netOutBytes;
 	}
 
 }
