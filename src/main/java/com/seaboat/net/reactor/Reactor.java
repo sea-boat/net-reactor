@@ -61,6 +61,7 @@ public final class Reactor extends Thread {
 						connection = (FrontendConnection) attach;
 						if (key.isReadable()) {
 							try {
+								//must be ready to read
 								connection.read();
 								handler.handle(connection);
 							} catch (IOException e) {

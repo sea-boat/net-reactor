@@ -28,14 +28,19 @@ public class FrontendConnection {
 	private SelectionKey selectionKey;
 	private ByteBuffer readBuffer;
 	private static int BYFFERSIZE = 1024;
-	protected ConcurrentLinkedQueue<ByteBuffer> writeQueue = new ConcurrentLinkedQueue<ByteBuffer>();
+	private ConcurrentLinkedQueue<ByteBuffer> writeQueue = new ConcurrentLinkedQueue<ByteBuffer>();
 	private Reactor reactor;
+	private long lastReadTime;
+	private long lastWriteTime;
+	private long createTime;
 
 	public FrontendConnection(SocketChannel channel, long id, Reactor reactor) {
 		this.id = id;
 		this.channel = channel;
 		this.reactor = reactor;
-		//allocate byteBuffer until channel closed.
+		this.createTime = System.currentTimeMillis();
+		this.lastReadTime = createTime;
+		this.lastWriteTime = createTime;
 		this.readBuffer = reactor.getReactorPool().getBufferPool().allocate();
 	}
 
@@ -48,6 +53,7 @@ public class FrontendConnection {
 	}
 
 	public void read() throws IOException {
+		this.lastReadTime = System.currentTimeMillis();
 		channel.read(readBuffer);
 	}
 
@@ -60,6 +66,7 @@ public class FrontendConnection {
 	}
 
 	public void write() throws IOException {
+		this.lastWriteTime = System.currentTimeMillis();
 		ByteBuffer buffer;
 		while ((buffer = writeQueue.poll()) != null) {
 			buffer.flip();
@@ -90,6 +97,14 @@ public class FrontendConnection {
 
 	public void register(Selector selector) throws Throwable {
 		selectionKey = channel.register(selector, SelectionKey.OP_READ, this);
+	}
+
+	public long getLastReadTime() {
+		return lastReadTime;
+	}
+
+	public long getLastWriteTime() {
+		return lastWriteTime;
 	}
 
 }
