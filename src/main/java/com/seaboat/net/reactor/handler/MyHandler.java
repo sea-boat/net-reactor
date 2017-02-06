@@ -38,7 +38,7 @@ public class MyHandler implements Handler {
 			ByteBuffer sendBuffer = ByteBuffer.allocate(10);
 			;
 			sendBuffer.wrap("hello".getBytes());
-			connection.getWriteQueue().add(sendBuffer);
+			connection.WriteToQueue(sendBuffer);
 			connection.write();
 		}
 

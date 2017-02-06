@@ -6,6 +6,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.slf4j.Logger;
@@ -35,6 +37,7 @@ public class FrontendConnection {
 	private long createTime;
 	private long netInBytes;
 	private long netOutBytes;
+	private List<ConnectionEventHandler> eventHandlers = new LinkedList<ConnectionEventHandler>();
 
 	public FrontendConnection(SocketChannel channel, long id, Reactor reactor) {
 		this.id = id;
@@ -57,11 +60,16 @@ public class FrontendConnection {
 	public void read() throws IOException {
 		this.lastReadTime = System.currentTimeMillis();
 		int size = channel.read(readBuffer);
+		if(size == -1){
+			//client closes the connection
+			this.close();
+		}
 		if (size > 0)
 			netInBytes += size;
 	}
 
 	public void close() throws IOException {
+		this.processEvent(ConnectionEvents.CLOSE);
 		channel.close();
 		if (readBuffer != null) {
 			reactor.getReactorPool().getBufferPool().recycle(readBuffer);
@@ -85,6 +93,7 @@ public class FrontendConnection {
 					selectionKey.selector().wakeup();
 					break;
 				}
+				reactor.getReactorPool().getBufferPool().recycle(buffer);
 				netOutBytes += len;
 			}
 		}
@@ -96,12 +105,24 @@ public class FrontendConnection {
 		return readBuffer;
 	}
 
-	public ConcurrentLinkedQueue<ByteBuffer> getWriteQueue() {
-		return writeQueue;
+	public void WriteToQueue(ByteBuffer buffer) {
+		writeQueue.add(buffer);
 	}
 
 	public void register(Selector selector) throws Throwable {
 		selectionKey = channel.register(selector, SelectionKey.OP_READ, this);
+		processEvent(ConnectionEvents.REGISTE);
+	}
+
+	public void processEvent(int event) {
+		for (ConnectionEventHandler handler : eventHandlers) {
+			if (handler.getEventType() == event)
+				handler.event(this);
+		}
+	}
+
+	public void addEventHandler(ConnectionEventHandler handler) {
+		eventHandlers.add(handler);
 	}
 
 	public long getLastReadTime() {
@@ -118,6 +139,10 @@ public class FrontendConnection {
 
 	public long getNetOutBytes() {
 		return netOutBytes;
+	}
+
+	public Reactor getReactor() {
+		return reactor;
 	}
 
 }

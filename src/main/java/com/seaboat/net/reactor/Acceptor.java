@@ -8,6 +8,8 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -32,6 +34,7 @@ public final class Acceptor extends Thread {
 	private long acceptCount;
 	private static final AcceptIdGenerator IdGenerator = new AcceptIdGenerator();
 	private ReactorPool reactorPool;
+	private List<ConnectionEventHandler> eventHandlers = new LinkedList<ConnectionEventHandler>();
 
 	public Acceptor(ReactorPool reactorPool, String name, String bindIp,
 			int port) throws IOException {
@@ -94,12 +97,23 @@ public final class Acceptor extends Thread {
 			channel.setOption(StandardSocketOptions.SO_SNDBUF, 1024);
 			channel.setOption(StandardSocketOptions.TCP_NODELAY, true);
 			Reactor reactor = reactorPool.getNextReactor();
-			reactor.postRegister(new FrontendConnection(channel, IdGenerator
-					.getId(), reactor));
+			FrontendConnection connection = new FrontendConnection(channel,
+					IdGenerator.getId(), reactor);
+			for (ConnectionEventHandler handler : eventHandlers)
+				connection.addEventHandler(handler);
+			connection.processEvent(ConnectionEvents.ACCEPT);
+			reactor.postRegister(connection);
 		} catch (Throwable e) {
 			closeChannel(channel);
 			LOGGER.warn(getName(), e);
 		}
+	}
+
+	/**
+	 * add connection event handler
+	 */
+	public void addConnectionEventHandler(ConnectionEventHandler handler) {
+		eventHandlers.add(handler);
 	}
 
 	/**
