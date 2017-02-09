@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.seaboat.net.reactor.FrontendConnection;
+import com.seaboat.net.reactor.connection.Connection;
 
 /**
  * 
@@ -30,7 +30,7 @@ public class MyHandler implements Handler {
 	 * It means that reactor will trigger this function once the data is received.
 	 * @throws IOException 
 	 */
-	public void handle(FrontendConnection connection) throws IOException {
+	public void handle(Connection connection) throws IOException {
 		Buffer buff = connection.getReadBuffer();
 		readSize = +readSize + buff.position();
 		LOGGER.info(connection.getId() + " connection has receive " + readSize);

@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.seaboat.net.reactor.connection.Connection;
 import com.seaboat.net.reactor.handler.Handler;
 
 /**
@@ -25,7 +26,7 @@ public final class Reactor extends Thread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Reactor.class);
 	private final String name;
 	private final Selector selector;
-	private final ConcurrentLinkedQueue<FrontendConnection> queue;
+	private final ConcurrentLinkedQueue<Connection> queue;
 	private long doCount;
 	private Handler handler;
 	private ReactorPool reactorPool;
@@ -34,12 +35,12 @@ public final class Reactor extends Thread {
 			throws IOException {
 		this.name = name;
 		this.selector = Selector.open();
-		this.queue = new ConcurrentLinkedQueue<FrontendConnection>();
+		this.queue = new ConcurrentLinkedQueue<Connection>();
 		this.handler = handler;
 		this.reactorPool = reactorPool;
 	}
 
-	final void postRegister(FrontendConnection frontendConnection) {
+	final void postRegister(Connection frontendConnection) {
 		queue.offer(frontendConnection);
 		this.selector.wakeup();
 	}
@@ -55,14 +56,17 @@ public final class Reactor extends Thread {
 				register(selector);
 				keys = selector.selectedKeys();
 				for (SelectionKey key : keys) {
-					FrontendConnection connection = null;
+					Connection connection = null;
 					Object attach = key.attachment();
 					if (attach != null && key.isValid()) {
-						connection = (FrontendConnection) attach;
+						connection = (Connection) attach;
 						if (key.isReadable()) {
 							try {
-								//must be ready to read
+								// must be ready to read
 								connection.read();
+								// judge connection hasn't been closed.
+								if (connection.isClose())
+									continue;
 								handler.handle(connection);
 							} catch (IOException e) {
 								connection.close();
@@ -91,7 +95,7 @@ public final class Reactor extends Thread {
 	}
 
 	private void register(Selector selector) {
-		FrontendConnection c = null;
+		Connection c = null;
 		if (queue.isEmpty()) {
 			return;
 		}
@@ -104,7 +108,7 @@ public final class Reactor extends Thread {
 		}
 	}
 
-	final Queue<FrontendConnection> getRegisterQueue() {
+	final Queue<Connection> getRegisterQueue() {
 		return queue;
 	}
 

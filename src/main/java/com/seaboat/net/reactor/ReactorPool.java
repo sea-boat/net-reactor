@@ -26,7 +26,7 @@ public class ReactorPool {
 			reactors[i] = reactor;
 			reactor.start();
 		}
-		this.bufferPool = new BufferPool(1024 * 1024 * 512, 10 * 1024);
+		this.bufferPool = new BufferPool(1024 * 1024 * 52, 10 * 1024);
 	}
 
 	public Reactor getNextReactor() {

@@ -15,6 +15,12 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.seaboat.net.reactor.connection.Connection;
+import com.seaboat.net.reactor.connection.ConnectionEventHandler;
+import com.seaboat.net.reactor.connection.ConnectionEvents;
+import com.seaboat.net.reactor.connection.ConnectionFactory;
+import com.seaboat.net.reactor.connection.DefaultConnectionFactory;
+
 /**
  * 
  * @author seaboat
@@ -35,6 +41,7 @@ public final class Acceptor extends Thread {
 	private static final AcceptIdGenerator IdGenerator = new AcceptIdGenerator();
 	private ReactorPool reactorPool;
 	private List<ConnectionEventHandler> eventHandlers = new LinkedList<ConnectionEventHandler>();
+	private ConnectionFactory connectionFactory = new DefaultConnectionFactory();
 
 	public Acceptor(ReactorPool reactorPool, String name, String bindIp,
 			int port) throws IOException {
@@ -97,7 +104,7 @@ public final class Acceptor extends Thread {
 			channel.setOption(StandardSocketOptions.SO_SNDBUF, 1024);
 			channel.setOption(StandardSocketOptions.TCP_NODELAY, true);
 			Reactor reactor = reactorPool.getNextReactor();
-			FrontendConnection connection = new FrontendConnection(channel,
+			Connection connection = connectionFactory.createConnection(channel,
 					IdGenerator.getId(), reactor);
 			for (ConnectionEventHandler handler : eventHandlers)
 				connection.addEventHandler(handler);
@@ -158,4 +165,9 @@ public final class Acceptor extends Thread {
 			}
 		}
 	}
+
+	public void setConnectionFactory(ConnectionFactory connectionFactory) {
+		this.connectionFactory = connectionFactory;
+	}
+
 }
