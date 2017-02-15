@@ -57,9 +57,8 @@ public final class BufferPool {
 	private boolean checkValidBuffer(ByteBuffer buffer) {
 		if (buffer == null || !buffer.isDirect()) {
 			return false;
-		} else if (buffer.capacity() > chunkSize) {
-			LOGGER.warn("cant' recycle a buffer large than chunksize "
-					+ buffer.capacity());
+		} else if (buffer.capacity() != chunkSize) {
+			// we don't recycle the buffer that isn't allocated by BufferPool.
 			return false;
 		}
 		totalCounts++;
