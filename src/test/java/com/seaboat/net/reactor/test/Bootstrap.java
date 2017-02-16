@@ -1,10 +1,11 @@
-package com.seaboat.net.reactor;
+package com.seaboat.net.reactor.test;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.seaboat.net.reactor.Acceptor;
+import com.seaboat.net.reactor.ReactorPool;
 import com.seaboat.net.reactor.handler.Handler;
-import com.seaboat.net.reactor.handler.MyHandler;
 
 /**
  * 

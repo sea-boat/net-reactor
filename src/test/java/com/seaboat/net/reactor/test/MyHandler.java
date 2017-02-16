@@ -1,4 +1,4 @@
-package com.seaboat.net.reactor.handler;
+package com.seaboat.net.reactor.test;
 
 import java.io.IOException;
 import java.nio.Buffer;
@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.seaboat.net.reactor.connection.Connection;
+import com.seaboat.net.reactor.handler.Handler;
 
 /**
  * 
@@ -37,7 +38,7 @@ public class MyHandler implements Handler {
 		if (readSize % 5 == 0) {
 			ByteBuffer sendBuffer = ByteBuffer.allocate(10);
 			;
-			sendBuffer.wrap("hello".getBytes());
+			ByteBuffer.wrap("hello".getBytes());
 			connection.WriteToQueue(sendBuffer);
 			connection.write();
 		}

@@ -24,7 +24,6 @@ import com.seaboat.net.reactor.handler.Handler;
  */
 public final class Reactor extends Thread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Reactor.class);
-	private final String name;
 	private final Selector selector;
 	private final ConcurrentLinkedQueue<Connection> queue;
 	private long doCount;
@@ -33,7 +32,6 @@ public final class Reactor extends Thread {
 
 	public Reactor(String name, Handler handler, ReactorPool reactorPool)
 			throws IOException {
-		this.name = name;
 		this.selector = Selector.open();
 		this.queue = new ConcurrentLinkedQueue<Connection>();
 		this.handler = handler;

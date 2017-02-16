@@ -11,8 +11,6 @@ package com.seaboat.net.reactor.connection;
  */
 public interface ConnectionEventHandler {
 
-	public int getEventType();
-
-	public void event(Connection connection);
+	public void event(Connection connection, int event);
 
 }

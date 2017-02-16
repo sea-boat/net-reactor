@@ -125,10 +125,8 @@ public class Connection {
 	}
 
 	public void processEvent(int event) {
-		for (ConnectionEventHandler handler : eventHandlers) {
-			if (handler.getEventType() == event)
-				handler.event(this);
-		}
+		for (ConnectionEventHandler handler : eventHandlers)
+			handler.event(this, event);
 	}
 
 	public void addEventHandler(ConnectionEventHandler handler) {
