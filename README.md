@@ -3,7 +3,7 @@ it's a simple and easy net framework with nio mode written by java
 
 
 # how-to
-***just simply like:***
+## just simply like:
 ```
 public class MyHandler implements Handler {
 
@@ -31,18 +31,18 @@ ReactorPool reactorPool = new ReactorPool(Runtime.getRuntime().availableProcesso
 new Acceptor(reactorPool, acceptorName, host, port).start();
 ```
 
-***adding a connection event:***
+## adding a connection event or a connection multi-event:
 ```
 public class RegisterHandler implements ConnectionEventHandler {
 	private static final Logger LOGGER = LoggerFactory
 			.getLogger(RegisterHandler.class);
 
-	public int getEventType() {
-		return ConnectionEvents.REGISTE;
-	}
+    private static int INTERESTED = ConnectionEvents.REGISTE;
 
 	public void event(FrontendConnection connection) {
-	    //do something here	
+	    if ((event & INTERESTED) != 0) {
+	        //do something here	
+	    }
 	}
 
 }
@@ -56,9 +56,27 @@ Acceptor acceptor = new Acceptor(reactorPool, acceptorName, host, port);
 acceptor.addConnectionEventHandler(connectionEventHandler);
 acceptor.start();
 ```
+```
+public class ConnectionLogHandler implements ConnectionEventHandler {
+	private static final Logger LOGGER = LoggerFactory
+			.getLogger(ConnectionLogHandler.class);
+	private static int INTERESTED = ConnectionEvents.ACCEPT
+			| ConnectionEvents.CLOSE;
+
+	public void event(Connection connection, int event) {
+		if ((event & INTERESTED) != 0) {
+			if ((event & ConnectionEvents.ACCEPT) != 0)
+				LOGGER.info("accept connection,id is " + connection.getId());
+			if ((event & ConnectionEvents.CLOSE) != 0)
+				LOGGER.info("close connection,id is " + connection.getId());
+		}
+	}
+}
+
+```
 
 
-***implement the connection***
+## implements the connection
 ```
 public class XXXConnection extends Connection {
 
