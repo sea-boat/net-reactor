@@ -38,6 +38,7 @@ public class Connection {
 	private long createTime;
 	private long netInBytes;
 	private long netOutBytes;
+	protected volatile String charset = "UTF-8";
 	private volatile boolean isClose = false;
 	private List<ConnectionEventHandler> eventHandlers = new LinkedList<ConnectionEventHandler>();
 
@@ -159,6 +160,14 @@ public class Connection {
 
 	public void setClose(boolean isClose) {
 		this.isClose = isClose;
+	}
+
+	public String getCharset() {
+		return charset;
+	}
+
+	public void setCharset(String charset) {
+		this.charset = charset;
 	}
 
 }

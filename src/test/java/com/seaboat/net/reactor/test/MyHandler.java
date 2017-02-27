@@ -38,7 +38,7 @@ public class MyHandler implements Handler {
 		if (readSize % 5 == 0) {
 			ByteBuffer sendBuffer = ByteBuffer.allocate(10);
 			;
-			ByteBuffer.wrap("hello".getBytes());
+			ByteBuffer.wrap("hello".getBytes(connection.getCharset()));
 			connection.WriteToQueue(sendBuffer);
 			connection.write();
 		}
