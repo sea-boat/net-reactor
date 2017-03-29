@@ -1,6 +1,8 @@
 # net-reactor
 it's a simple and easy net framework with nio mode written by java
 
+# reactor model
+![reactor model](reactor.png)
 
 # how-to
 ## just simply like:
